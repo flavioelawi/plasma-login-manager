@@ -1,0 +1,10 @@
+#!/bin/sh
+# Plasma Login Manager - Sunshine (Moonlight) host for the login screen
+set -eu
+
+if [ "${PLASMALOGIN_REMOTE_SUNSHINE:-1}" != "1" ]; then
+    echo "plasmalogin-remote: Sunshine is disabled" >&2
+    exit 0
+fi
+
+exec sunshine

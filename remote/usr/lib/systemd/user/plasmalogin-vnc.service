@@ -1,0 +1,17 @@
+[Unit]
+Description=Plasma Login Manager VNC server
+Documentation=man:plasmalogin(1)
+After=plasma-login-kwin_wayland.service pipewire.service wireplumber.service
+Wants=pipewire.service wireplumber.service
+BindsTo=plasma-login-kwin_wayland.service
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/plasmalogin-remote.conf
+Environment=WAYLAND_DISPLAY=wayland-0
+Environment=XDG_SESSION_TYPE=wayland
+Environment=QT_QPA_PLATFORM=wayland
+ExecStart=/usr/lib/plasmalogin/remote-vnc
+Restart=on-failure
+RestartSec=2
+Slice=session.slice

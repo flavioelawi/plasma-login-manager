@@ -1,0 +1,17 @@
+#!/bin/sh
+# Plasma Login Manager - RDP server for the login screen
+set -eu
+
+if [ "${PLASMALOGIN_REMOTE_RDP:-1}" != "1" ]; then
+    echo "plasmalogin-remote: RDP is disabled" >&2
+    exit 0
+fi
+
+exec krdpserver \
+    --plasma \
+    --address 0.0.0.0 \
+    --port "${PLASMALOGIN_REMOTE_RDP_PORT:-3389}" \
+    --certificate "${PLASMALOGIN_REMOTE_RDP_CERTIFICATE:-/var/lib/plasmalogin/.config/krdp/server.crt}" \
+    --certificate-key "${PLASMALOGIN_REMOTE_RDP_CERTIFICATE_KEY:-/var/lib/plasmalogin/.config/krdp/server.key}" \
+    --monitor "${PLASMALOGIN_REMOTE_RDP_MONITOR:-0}" \
+    --mode "${PLASMALOGIN_REMOTE_RDP_MODE:-SharedAccess}"

@@ -1,0 +1,60 @@
+#!/bin/sh
+# Install scriptlet for the remote-access (RDP/VNC/Sunshine) support shipped in
+# plasma-login-manager. Everything that can be installed declaratively is done
+# by package(); this only performs the runtime setup that belongs to the target
+# system: the greeter account's writable state directories, copied defaults,
+# and the self-signed RDP TLS certificate.
+
+_setup_remote() {
+    # On a fresh install the sysusers/tmpfiles hooks may not have run yet.
+    if command -v systemd-sysusers >/dev/null 2>&1; then
+        systemd-sysusers >/dev/null 2>&1 || true
+    fi
+    if command -v systemd-tmpfiles >/dev/null 2>&1; then
+        systemd-tmpfiles --create >/dev/null 2>&1 || true
+    fi
+
+    if ! getent passwd plasmalogin >/dev/null 2>&1; then
+        return 0
+    fi
+
+    install -d -m0750 -o plasmalogin -g plasmalogin /var/lib/plasmalogin/.config
+    install -d -m0750 -o plasmalogin -g plasmalogin /var/lib/plasmalogin/.config/sunshine
+    install -d -m0750 -o plasmalogin -g plasmalogin /var/lib/plasmalogin/.config/krdp
+    install -d -m0750 -o plasmalogin -g plasmalogin /var/lib/plasmalogin/.local/share/applications
+
+    if [ ! -e /var/lib/plasmalogin/.config/sunshine/apps.json ]; then
+        install -m0644 -o plasmalogin -g plasmalogin \
+            /usr/lib/plasmalogin/sunshine/apps.json \
+            /var/lib/plasmalogin/.config/sunshine/apps.json
+    fi
+
+    if [ ! -e /var/lib/plasmalogin/.config/krdpserverrc ]; then
+        install -m0644 -o plasmalogin -g plasmalogin \
+            /usr/lib/plasmalogin/krdpserverrc \
+            /var/lib/plasmalogin/.config/krdpserverrc
+    fi
+
+    if [ ! -s /var/lib/plasmalogin/.config/krdp/server.crt ]; then
+        openssl req -x509 -newkey rsa:2048 -nodes \
+            -keyout /var/lib/plasmalogin/.config/krdp/server.key \
+            -out /var/lib/plasmalogin/.config/krdp/server.crt \
+            -days 3650 -subj "/CN=plasmalogin-rdp" >/dev/null 2>&1
+        chown plasmalogin:plasmalogin \
+            /var/lib/plasmalogin/.config/krdp/server.key \
+            /var/lib/plasmalogin/.config/krdp/server.crt
+        chmod 600 /var/lib/plasmalogin/.config/krdp/server.key
+    fi
+
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl daemon-reload || true
+    fi
+}
+
+post_install() {
+    _setup_remote
+}
+
+post_upgrade() {
+    _setup_remote
+}

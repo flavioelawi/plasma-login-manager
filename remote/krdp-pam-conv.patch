@@ -1,0 +1,18 @@
+--- a/src/RdpConnection.cpp
++++ b/src/RdpConnection.cpp
+@@ -125,6 +125,13 @@ static int pam_conv(int num_msg, const struct pam_message **msg, struct pam_resp
+             response[index].resp_retcode = PAM_SUCCESS;
+             break;
+ 
++        case PAM_TEXT_INFO:
++        case PAM_ERROR_MSG:
++            // Informational messages are not prompts. Acknowledge them and
++            // keep going so modules such as pam_systemd_home can present
++            // their multi-message unlock flow without breaking authentication.
++            response[index].resp = nullptr;
++            response[index].resp_retcode = PAM_SUCCESS;
++            break;
++
+         default:
+             pam_status = PAM_CONV_ERR;
+             goto out_fail;

@@ -1,0 +1,19 @@
+[Unit]
+Description=Sunshine host for the Plasma Login Manager login screen
+Documentation=man:plasmalogin(1)
+After=plasma-login-kwin_wayland.service pipewire.service wireplumber.service
+Wants=pipewire.service wireplumber.service
+BindsTo=plasma-login-kwin_wayland.service
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/plasmalogin-remote.conf
+Environment=WAYLAND_DISPLAY=wayland-0
+Environment=XDG_SESSION_TYPE=wayland
+Environment=HOME=/var/lib/plasmalogin
+Environment=XDG_CONFIG_HOME=/var/lib/plasmalogin/.config
+Environment=XDG_DATA_HOME=/var/lib/plasmalogin/.local/share
+ExecStart=/usr/lib/plasmalogin/remote-sunshine
+Restart=on-failure
+RestartSec=3
+Slice=session.slice

@@ -1,0 +1,14 @@
+#!/bin/sh
+# Plasma Login Manager - VNC server for the login screen
+set -eu
+
+if [ "${PLASMALOGIN_REMOTE_VNC:-1}" != "1" ]; then
+    echo "plasmalogin-remote: VNC is disabled" >&2
+    exit 0
+fi
+
+exec krfb-virtualmonitor \
+    --port "${PLASMALOGIN_REMOTE_VNC_PORT:-5900}" \
+    --password "${PLASMALOGIN_REMOTE_VNC_PASSWORD:-}" \
+    --resolution "${PLASMALOGIN_REMOTE_VNC_RESOLUTION:-1920x1080}" \
+    --name "Login"
